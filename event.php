@@ -1,12 +1,17 @@
 <?php
 session_start();
-// Display success message if set
-if (isset($_SESSION['success_message'])) {
-  echo "<script>alert('" . $_SESSION['success_message'] . "');</script>";
-  unset($_SESSION['success_message']); // Clear the message after displaying
-}
 include 'includes/db.php';
 include 'includes/header.php';
+
+// Display success/error messages
+if (isset($_SESSION['success_message'])) {
+  echo "<script>alert('" . $_SESSION['success_message'] . "');</script>";
+  unset($_SESSION['success_message']);
+}
+if (isset($_SESSION['error_message'])) {
+  echo "<script>alert('" . $_SESSION['error_message'] . "');</script>";
+  unset($_SESSION['error_message']);
+}
 
 // Check if event ID is provided
 if (!isset($_GET['id'])) {
@@ -24,7 +29,7 @@ if (!$event) {
   die("Event not found!");
 }
 
-// Fetch attendees for this event
+// Fetch attendees
 $attendees_stmt = $pdo->prepare("SELECT * FROM attendees WHERE event_id = ?");
 $attendees_stmt->execute([$event_id]);
 $attendees = $attendees_stmt->fetchAll();
@@ -48,9 +53,12 @@ $attendees = $attendees_stmt->fetchAll();
         </li>
       </ul>
 
-      <!-- Edit Event Button (2.3) -->
-      <?php if ($_SESSION['user_id'] == $event['user_id']): ?>
-        <a href="edit_event.php?id=<?= $event['id'] ?>" class="btn btn-warning mt-3">Edit Event</a>
+      <!-- Edit/Delete Buttons -->
+      <?php if ($_SESSION['user_id'] == $event['user_id'] || $_SESSION['is_admin']): ?>
+        <div class="mt-3">
+          <a href="edit_event.php?id=<?= $event['id'] ?>" class="btn btn-warning">Edit Event</a>
+          <button class="btn btn-danger" onclick="confirmDelete(<?= $event['id'] ?>)">Delete Event</button>
+        </div>
       <?php endif; ?>
     </div>
   </div>
@@ -76,13 +84,21 @@ $attendees = $attendees_stmt->fetchAll();
     </tbody>
   </table>
 
-  <!-- Registration Button & Report Download (Admin) -->
+  <!-- Registration Button & Report Download -->
   <div class="mt-4">
     <a href="register_attendee.php?event_id=<?= $event_id ?>" class="btn btn-success">Register Attendee</a>
     <?php if ($_SESSION['is_admin']): ?>
-      <a href="reports.php?event_id=<?= $event_id ?>" class="btn btn-primary">Download Attendees (CSV)</a>
+      <a href="reports.php?event_id=<?= $event_id ?>" class="btn btn-primary">Download CSV</a>
     <?php endif; ?>
   </div>
 </div>
+
+<script>
+function confirmDelete(eventId) {
+  if (confirm("Are you sure you want to delete this event?")) {
+    window.location.href = `delete_event.php?id=${eventId}`;
+  }
+}
+</script>
 
 <?php include 'includes/footer.php'; ?>
