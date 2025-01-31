@@ -3,7 +3,7 @@ session_start();
 include 'includes/db.php';
 include 'includes/header.php';
 
-// Display success/error messages
+// Display messages
 if (isset($_SESSION['success_message'])) {
   echo "<script>alert('" . $_SESSION['success_message'] . "');</script>";
   unset($_SESSION['success_message']);
@@ -29,8 +29,16 @@ if (!$event) {
   die("Event not found!");
 }
 
-// Fetch attendees
-$attendees_stmt = $pdo->prepare("SELECT * FROM attendees WHERE event_id = ?");
+// Get attendee search term
+$attendee_search = isset($_GET['attendee_search']) ? "%{$_GET['attendee_search']}%" : '%';
+
+// Fetch attendees with search filter
+$attendees_stmt = $pdo->prepare("
+  SELECT * FROM attendees 
+  WHERE event_id = ? 
+  AND (name LIKE :search OR email LIKE :search)
+");
+$attendees_stmt->bindParam(':search', $attendee_search, PDO::PARAM_STR);
 $attendees_stmt->execute([$event_id]);
 $attendees = $attendees_stmt->fetchAll();
 ?>
@@ -63,26 +71,45 @@ $attendees = $attendees_stmt->fetchAll();
     </div>
   </div>
 
+  <!-- Attendee Search Form -->
+  <form method="GET" class="mb-4">
+    <input type="hidden" name="id" value="<?= $event_id ?>">
+    <div class="input-group">
+      <input 
+        type="text" 
+        name="attendee_search" 
+        class="form-control" 
+        placeholder="Search attendees by name or email..."
+        value="<?= isset($_GET['attendee_search']) ? htmlspecialchars($_GET['attendee_search']) : '' ?>"
+      >
+      <button type="submit" class="btn btn-primary">Search</button>
+    </div>
+  </form>
+
   <!-- Attendees List -->
   <h3>Attendees (<?= count($attendees) ?>)</h3>
-  <table class="table table-striped">
-    <thead>
-      <tr>
-        <th>Name</th>
-        <th>Email</th>
-        <th>Registration Date</th>
-      </tr>
-    </thead>
-    <tbody>
-      <?php foreach ($attendees as $attendee): ?>
+  <?php if (count($attendees) > 0): ?>
+    <table class="table table-striped">
+      <thead>
         <tr>
-          <td><?= htmlspecialchars($attendee['name']) ?></td>
-          <td><?= htmlspecialchars($attendee['email']) ?></td>
-          <td><?= date('M j, Y', strtotime($attendee['registered_at'])) ?></td>
+          <th>Name</th>
+          <th>Email</th>
+          <th>Registration Date</th>
         </tr>
-      <?php endforeach; ?>
-    </tbody>
-  </table>
+      </thead>
+      <tbody>
+        <?php foreach ($attendees as $attendee): ?>
+          <tr>
+            <td><?= htmlspecialchars($attendee['name']) ?></td>
+            <td><?= htmlspecialchars($attendee['email']) ?></td>
+            <td><?= date('M j, Y', strtotime($attendee['registered_at'])) ?></td>
+          </tr>
+        <?php endforeach; ?>
+      </tbody>
+    </table>
+  <?php else: ?>
+    <div class="alert alert-info">No attendees found.</div>
+  <?php endif; ?>
 
   <!-- Registration Button & Report Download -->
   <div class="mt-4">
