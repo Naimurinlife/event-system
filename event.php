@@ -1,5 +1,10 @@
 <?php
 session_start();
+// Display success message if set
+if (isset($_SESSION['success_message'])) {
+  echo "<script>alert('" . $_SESSION['success_message'] . "');</script>";
+  unset($_SESSION['success_message']); // Clear the message after displaying
+}
 include 'includes/db.php';
 include 'includes/header.php';
 
@@ -42,6 +47,11 @@ $attendees = $attendees_stmt->fetchAll();
           <strong>Capacity:</strong> <?= $event['max_capacity'] ?> attendees
         </li>
       </ul>
+
+      <!-- Edit Event Button (2.3) -->
+      <?php if ($_SESSION['user_id'] == $event['user_id']): ?>
+        <a href="edit_event.php?id=<?= $event['id'] ?>" class="btn btn-warning mt-3">Edit Event</a>
+      <?php endif; ?>
     </div>
   </div>
 
