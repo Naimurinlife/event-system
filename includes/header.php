@@ -12,7 +12,7 @@
       <!-- Brand/Logo -->
       <a class="navbar-brand" href="dashboard.php">Event System</a>
       
-      <!-- Hamburger Toggle Button for Mobile -->
+      
       <button 
         class="navbar-toggler" 
         type="button" 
