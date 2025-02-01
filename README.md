@@ -53,3 +53,28 @@ A **PHP/MySQL-based Event Management System** for creating, managing, and tracki
      registered_at TIMESTAMP DEFAULT CURRENT_TIMESTAMP,
      FOREIGN KEY (event_id) REFERENCES events(id)
    );
+
+### 3. File Setup
+## Clone the repository:
+
+1. git clone https://github.com/Naimurinlife/event-system.git
+2. cd event-system
+3. Update includes/db.php with your database credentials:
+
+4. $host = 'localhost';
+5. $dbname = 'event_system';
+6. $user = 'root';
+7. $pass = '';   
+
+  ### 4. Run the Application
+Start your local server (e.g., XAMPP, WAMP, or php -S localhost:8000).
+
+### Access the application:
+
+Login Page: http://localhost/event-system/login.php
+
+Dashboard: http://localhost/event-system/dashboard.php
+
+### Live URL
+You can access the live application here:
+https://event-system-naimur.free.nf
