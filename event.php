@@ -3,45 +3,28 @@ session_start();
 include 'includes/db.php';
 include 'includes/header.php';
 
-// Display messages
-if (isset($_SESSION['success_message'])) {
-  echo "<script>alert('" . $_SESSION['success_message'] . "');</script>";
-  unset($_SESSION['success_message']);
-}
-if (isset($_SESSION['error_message'])) {
-  echo "<script>alert('" . $_SESSION['error_message'] . "');</script>";
-  unset($_SESSION['error_message']);
-}
 
-// Check if event ID is provided
 if (!isset($_GET['id'])) {
   die("Event ID not specified!");
 }
 
 $event_id = $_GET['id'];
 
-// Fetch event details
+// Fetch event details (using positional parameters)
 $stmt = $pdo->prepare("SELECT * FROM events WHERE id = ?");
-$stmt->execute([$event_id]);
+$stmt->execute([$event_id]); 
 $event = $stmt->fetch(PDO::FETCH_ASSOC);
 
 if (!$event) {
   die("Event not found!");
 }
 
-// Get attendee search term
-$attendee_search = isset($_GET['attendee_search']) ? "%{$_GET['attendee_search']}%" : '%';
-
-// Fetch attendees with search filter
-$attendees_stmt = $pdo->prepare("
-  SELECT * FROM attendees 
-  WHERE event_id = ? 
-  AND (name LIKE :search OR email LIKE :search)
-");
-$attendees_stmt->bindParam(':search', $attendee_search, PDO::PARAM_STR);
+// Fetch attendees (using positional parameters)
+$attendees_stmt = $pdo->prepare("SELECT * FROM attendees WHERE event_id = ?");
 $attendees_stmt->execute([$event_id]);
 $attendees = $attendees_stmt->fetchAll();
 ?>
+
 
 <div class="container mt-5">
   <!-- Event Details Card -->
